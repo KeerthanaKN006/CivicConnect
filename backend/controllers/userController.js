@@ -43,3 +43,18 @@ export const makeAdmin = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getUserRole = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.json({ role: "citizen" }); // Default role if user not found
+    }
+
+    res.json({ role: user.role });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

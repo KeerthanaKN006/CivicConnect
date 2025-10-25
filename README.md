@@ -135,11 +135,12 @@ frontend/src/
 
 ## 📡 API Endpoints
 
-### Authentication-Endependent Endpoints
+### Authentication-Independent Endpoints
 
 #### User Management
 - **POST** `/api/users` - Create new user in MongoDB
 - **POST** `/api/users/make-admin` - Promote user to admin role
+- **GET** `/api/users/role/:email` - Get user role by email (for frontend role-based UI)
 
 #### Reports
 - **GET** `/api/reports` - Fetch all reports (public)
@@ -174,22 +175,36 @@ frontend/src/
 
 ## 🎨 Frontend Pages & Features
 
-### 1. Login Page (`/login`)
+### 1. Landing Page (`/`)
+**Features:**
+- **Hero Section**: Gradient background with compelling headline
+- **Call-to-Action Buttons**: 
+  - "Start Reporting" → Login (unauthenticated) or Dashboard (authenticated)
+  - "Learn More" → Smooth scroll to features section
+- **Feature Carousel**: Automatic slideshow showcasing platform capabilities
+- **How It Works**: 4-step process explanation with numbered cards
+- **Testimonials**: Rotating carousel with community feedback
+- **Why Choose CivicConnect**: 3 benefit cards with hover effects
+- **Footer**: Links to platform features and company information
+- **No Navbar**: Clean landing page experience without navigation bar
+- **Responsive**: Fully responsive design with smooth animations
+
+### 2. Login Page (`/login`)
 - Email/password authentication via Firebase
 - Link to registration page
 - Automatic redirect to dashboard on success
 
-### 2. Registration Page (`/register`)
+### 3. Registration Page (`/register`)
 - Firebase user creation
 - Automatic MongoDB user document creation
 - Redirect to dashboard on success
 
-### 3. Dashboard (`/dashboard`, `/`)
+### 4. Dashboard (`/dashboard`)
 - Central hub with navigation links
 - Quick access to reporting and viewing reports
 - User-friendly welcome interface
 
-### 4. Report Issue (`/report`)
+### 5. Report Issue (`/report`)
 **Features:**
 - **Form fields**: Title, Description, Location Address
 - **Image Upload**:
@@ -203,7 +218,7 @@ frontend/src/
   - Form validation
   - Success/error alerts
 
-### 5. My Reports (`/my-reports`)
+### 6. My Reports (`/my-reports`)
 **Features:**
 - Filtered view showing only current user's reports
 - Status badges with color coding:
@@ -213,7 +228,7 @@ frontend/src/
 - Display: Title, description, location, creation date, image
 - Loading state handling
 
-### 6. Admin Panel (`/admin`)
+### 7. Admin Panel (`/admin`)
 **Features:**
 - **Access Control**: Automatic redirect if not admin
 - **All Reports View**: Displays reports from all users
@@ -224,7 +239,13 @@ frontend/src/
 
 ### Navigation Bar
 - **Conditional Rendering**: Different links for authenticated/unauthenticated users
-- **Features**: Login/Register (public), Dashboard/Report/My Reports (authenticated), Admin Panel (admin only), Logout button
+- **Role-Based Admin Link**: Admin Panel link only visible to users with "admin" role
+- **Dynamic Role Detection**: Frontend fetches user role from backend on login
+- **Features**: 
+  - **Public**: Login/Register links
+  - **Authenticated**: Dashboard, Report Issue, My Reports, Logout
+  - **Admin Only**: Admin Panel (hidden from regular citizens)
+- **Implementation**: Uses `AuthContext` to fetch and store user role via `GET /api/users/role/:email`
 
 ---
 
@@ -275,34 +296,49 @@ POST /api/reports with imageUrl
 
 ## 🎯 Key Features & Implementation Highlights
 
-### 1. Protected Routes
+### 1. Landing Page Experience
+- **Professional Marketing Site**: First impression with hero section and compelling copy
+- **Smart Navigation**: CTA buttons adapt based on authentication status
+- **Feature Showcase**: Carousel displays key platform features
+- **Community Trust**: Testimonials section builds credibility
+- **No Clutter**: Clean design without navbar on landing page
+- **Smooth Animations**: Transitions and hover effects enhance UX
+- **Conversion Focused**: Clear call-to-actions guide users to register/login
+
+### 2. Protected Routes
 - React Router with authentication checks
 - Seamless redirects for unauthorized access
 - Global authentication state via Context API
 
-### 2. Role-Based Access Control
-- Double-layer security: Firebase auth + MongoDB role check
-- Admin middleware validates role on every request
-- Frontend shows/hides admin features based on role
+### 3. Role-Based Access Control (RBAC)
+- **Double-Layer Security**: Firebase auth + MongoDB role check
+- **Backend Middleware**: `checkAdmin` validates role on every admin request
+- **Frontend UI Control**: Admin Panel link hidden from regular citizens
+- **Dynamic Role Fetching**: User role fetched from backend on authentication
+- **Context Integration**: `AuthContext` stores `userRole` for global access
+- **API Endpoint**: `GET /api/users/role/:email` returns user role
+- **Conditional Rendering**: `{userRole === "admin" && <AdminLink />}`
 
-### 3. Image Handling
+### 4. Image Handling
 - Client-side preview for better UX
 - Cloud storage for scalability
 - Automatic optimization via Cloudinary
 - HTTPS-only image URLs for security
 
-### 4. Real-time State Management
+### 5. Real-time State Management
 - Firebase `onAuthStateChanged` for login state
 - React Context for global user state
+- User role fetched and stored on authentication
 - Automatic UI updates on authentication changes
+- Role-based conditional rendering
 
-### 5. Responsive Design
+### 6. Responsive Design
 - Mobile-friendly layouts
 - Consistent styling across pages
 - Status badges with intuitive color coding
 - Professional card-based UI
 
-### 6. Error Handling
+### 7. Error Handling
 - Try-catch blocks in all async operations
 - User-friendly error messages
 - Console logging for debugging
@@ -448,6 +484,35 @@ VITE_FIREBASE_APP_ID=...
 
 ---
 
+## 💻 Frontend-Backend Integration
+
+### Authentication Flow
+1. **User Login**: Firebase authenticates → Returns user object with email
+2. **Role Fetch**: `AuthContext` calls `GET /api/users/role/:email`
+3. **State Update**: `userRole` stored in context for global access
+4. **UI Update**: Navbar conditionally renders Admin link based on role
+
+### Data Flow
+```
+User Action → Component → AuthContext/API → Backend → Database → Response → UI Update
+```
+
+### Context API Structure
+```javascript
+AuthContext.Provider value={{
+  user: FirebaseUser | null,
+  userRole: "admin" | "citizen" | null
+}}
+```
+
+### API Integration
+- **Axios**: Used for all HTTP requests
+- **Bearer Token**: Firebase ID token sent in Authorization header
+- **Error Handling**: Try-catch with user-friendly alerts
+- **Loading States**: UI feedback during async operations
+
+---
+
 ## 🔒 Security Measures
 
 1. **Authentication**: Firebase JWT tokens for API security
@@ -457,6 +522,7 @@ VITE_FIREBASE_APP_ID=...
 5. **Environment Variables**: Sensitive data not committed to code
 6. **HTTPS**: All external URLs use secure connections
 7. **CORS**: Configured for authorized origins only
+8. **Role Validation**: Frontend AND backend checks for admin access
 
 ---
 
@@ -487,7 +553,9 @@ VITE_FIREBASE_APP_ID=...
 - Responsive design
 - Status badges
 
-### Phase 5: Final Polish ✅
+### Phase 5: Final Polish & Presentation ✅
+- Landing page with marketing content
+- Role-based navigation (admin link conditional)
 - Documentation
 - Error handling
 - Testing
@@ -526,6 +594,82 @@ VITE_FIREBASE_APP_ID=...
 6. **Analytics Dashboard**: Admin statistics and charts
 7. **Comments System**: Citizen-administrator communication
 8. **Report Prioritization**: Urgency levels for reports
+
+---
+
+## 💡 Code Examples & Implementation Details
+
+### Role-Based Navigation Implementation
+
+**Backend Controller** (`userController.js`):
+```javascript
+export const getUserRole = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.json({ role: "citizen" });
+    }
+    
+    res.json({ role: user.role });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+```
+
+**Frontend Context** (`AuthContext.jsx`):
+```javascript
+const [userRole, setUserRole] = useState(null);
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    setUser(currentUser);
+    
+    if (currentUser?.email) {
+      const response = await axios.get(
+        `http://localhost:5000/api/users/role/${currentUser.email}`
+      );
+      setUserRole(response.data.role);
+    }
+  });
+  return () => unsubscribe();
+}, []);
+```
+
+**Navigation Conditional Rendering** (`Navbar.jsx`):
+```javascript
+{userRole === "admin" && (
+  <Link to="/admin">Admin</Link>
+)}
+```
+
+### Landing Page Smart Routing
+
+**Home Component** (`Home.jsx`):
+```javascript
+const handleStartReporting = () => {
+  if (user) {
+    navigate("/dashboard");  // Authenticated users
+  } else {
+    navigate("/login");      // Unauthenticated users
+  }
+};
+```
+
+### Protected Route Example
+
+```javascript
+<Route
+  path="/admin"
+  element={
+    <ProtectedRoute>
+      <AdminPanel />
+    </ProtectedRoute>
+  }
+/>
+```
 
 ---
 

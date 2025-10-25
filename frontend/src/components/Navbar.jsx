@@ -6,7 +6,7 @@ import { auth } from "../firebase/firebaseConfig";
 import "../App.css";
 
 export default function Navbar() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -32,7 +32,9 @@ export default function Navbar() {
               <Link to="/dashboard" style={{ color: "#fff", marginRight: "15px", textDecoration: "none" }}>Dashboard</Link>
               <Link to="/report" style={{ color: "#fff", marginRight: "15px", textDecoration: "none" }}>Report Issue</Link>
               <Link to="/my-reports" style={{ color: "#fff", marginRight: "15px", textDecoration: "none" }}>My Reports</Link>
-              <Link to="/admin" style={{ color: "#fff", marginRight: "15px", textDecoration: "none" }}>Admin</Link>
+              {userRole === "admin" && (
+                <Link to="/admin" style={{ color: "#fff", marginRight: "15px", textDecoration: "none" }}>Admin</Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="btn btn-danger"
