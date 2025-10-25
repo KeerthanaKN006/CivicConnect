@@ -7,11 +7,12 @@ const router = express.Router();
 // Secure this route
 router.post("/", verifyToken, async (req, res) => {
   try {
-    const { title, description, location } = req.body;
+    const { title, description, location, imageUrl } = req.body;
     const newReport = new Report({
       title,
       description,
       location,
+      imageUrl: imageUrl || "",
       createdBy: req.user.email || "anonymous"
     });
     await newReport.save();
